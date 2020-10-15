@@ -1,7 +1,7 @@
 # hydrodyn-resistance
-##Edx Project Two - Predict Residual Resistance from measurements taken based on Hull design
+## Edx Project Two - Predict Residual Resistance from measurements taken based on Hull design
 
-###Summary
+### Summary
 Data taken from yacht hydrodynamics dataset at https://archive.ics.uci.edu/ml/datasets/Yacht+Hydrodynamics
 The goal was to predict residual resistance from various hull geometry coefficients and Froude number
 
