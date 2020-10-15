@@ -16,6 +16,7 @@ library(Rborist)
 library(randomForest)
 library(e1071)
 
+
 #Data Import
 
 #datafile address https://archive.ics.uci.edu/ml/machine-learning-databases/00243/yacht_hydrodynamics.data
@@ -88,6 +89,7 @@ print(att_7)
 att_inf <- as.data.table(att_inf) %>%
   mutate(short_names = c("lcb", "cp", "dlr", "bt", "lb", "fn", "resid_reswei"))
 colnames(import_data) <- c("lcb", "cp", "dlr", "bt", "lb", "fn", "resid_reswei")
+
 
 #Data Exploration
 
