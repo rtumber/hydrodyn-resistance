@@ -1,0 +1,78 @@
+---
+title: Prediction of Residual Resistance from various Hull Geometry Coefficients and
+  Froude Number
+author: "R Tumber"
+date: "19/10/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```{r load_libs, echo= FALSE, include=FALSE}
+library(tidyverse)
+library(data.table)
+library(tinytex)
+```
+
+```{r load_rdata, echo= FALSE, message=FALSE}
+load("../Project 2/hydrodyn.RData")
+```
+
+### Introduction
+An introduction/overview/executive summary section that describes the dataset and variables, and summarizes the goal of the project and key steps that were performed.
+
+The project was performed on the dataset produced from a series of experiments that took place at the Delft Ship Hydromechanics Laboratory. The goal was to predict the value of residual resistance using a variety of hull geometry coefficients and Froude number as accurately as possible.
+The dataset was downloaded from the UCI Machine Learning Laboratory and the imported, the information for the column names came from scraping the html page and extracting the relevant information. Since the column names were longer than ideal they were shortened, with the definitions stored in a separate table
+
+```{r attribute_definitions, echo=FALSE}
+print(att_inf)
+```
+
+The dataset consisted of 308 instances of 7 attributes:
+
+```{r data_summary_intro, echo=FALSE}
+str(import_data[1:5,])
+```
+
+All attributes were numerical and there were no missing entries in the dataset. The variable to predict was the Residuary resistance per unit weight of displacement.
+
+In examining the data, each variable was plotted against the residual resistance to determine if there were any obvious correlations and the correlation coefficients calculated. Following this, a correlation and covariance matrix was produced, looking for relationships not seen in the visualisations.
+The only variable showing a clear relationship was the Froude number.
+Where no clear relationship was observed, further visualisations were made using the average residual resistance at different values of variables to attempt to identify a weak relationship, here, the Prismatic Coefficient showed a possible relationship. 
+The Froude number was then examined more closely, the observed exponential style curve was straightened to allow the option of modelling using a linear regression approach.
+
+Finally, the variables that did not show an relationship were examined in the light of the equations used to calculated them and the variables already identified as having an effect on residual resistance.
+
+It was decided that all variables should, in theory, have an effect on the residual resistance.
+
+Before modelling, the data were split into a training and test set.
+Initially, two models were built using Caret to predict residual resistance from Froude Number only and then with the Prismatic Coefficient, using two separate ensembles, one using linear regression methods and the log of the Froude Number and the other using non-linear regression methods. Model accuracy was assessed using RMSE as this could be applied to be both model types.
+
+The more sucessful, non-linear regression model was kept and within this model the Random Forest type method was most accurate. As a result, a new ensemble was put together with a selection of Random Forest Type methods, and the generated models assessed again, with the most accurate two being carried forward. At this stage each of the remaining variables was added one at a time and only where RMSE was improved was the variable set aside to add at the end.
+Only one other variable had a beneficial effect on model accuracy, Length-Displacement Ratio. This was added to the model before tuning.
+The tuned values were used to produce a model from which predictied values were generated from the test set and a final RMSE calcualted.
+
+
+
+
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
