@@ -689,8 +689,8 @@ res_test_conc_dif %>%
   geom_point()
 
 #Looking at the plots it seems the model loses accuracy as Froude Number increases, this seems logical as the 
-#magnitude of the reesidual resistance increases greatly with an increase in Froude Number. The other factors, 
-#prismatic coefficient, cp, and Longitudinal position of the center of buoyancy, lcb, do not show any obvious signs
+#magnitude of the residual resistance increases greatly with an increase in Froude Number. The other factors, 
+#prismatic coefficient, cp, and Longitudinal position of thse center of buoyancy, lcb, do not show any obvious signs
 #that they have a large impact on the model accuracy with an increase or decrease in their values. Again, this is a 
 #pattern shown earlier when exploring the data.
 
