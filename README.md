@@ -11,3 +11,5 @@ Set split into training and test sets.
 Assessed using RMSE, ensembles of both linear and non-linear regression methods used for modelling on training set. Factors used in modelling identified by visualisation and mathematical inference.
 More successful modelling methods retained at early stage and futher factors added.
 Final model used to predict values on testing set and performance assessed using RMSE.
+
+File FullScript.R is the script used to download and process the data, create the model and assess the performance

@@ -93,6 +93,8 @@ colnames(import_data) <- c("lcb", "cp", "dlr", "bt", "lb", "fn", "resid_reswei")
 
 #Data Exploration
 
+#Data table structure
+str(import_data)
 #To begin we look at the mean & standard deviation of the factor we want to predict
 import_data %>% summarize(mean = mean(resid_reswei), std_dev = sd(resid_reswei))
 #The variation in the values indicates either there are one or more factors in the dataset that influence 
@@ -463,7 +465,7 @@ print(nlr_rmses)
 print(nlr_rmses_cp)
 
 #In both the linear and non-linear regression models, addition of the prismatic coefficient had either a small rise
-#or a small reduction in the RMSE for the residual resistance, however it is clear a paticular non-linear 
+#or a small reduction in the RMSE for the residual resistance, however it is clear a particular non-linear 
 #approach gives better results.
 
 print(rbind(lr_rmses_cp[1:3,2:3], nlr_rmses_cp))
