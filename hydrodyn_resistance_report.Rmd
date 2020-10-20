@@ -20,10 +20,8 @@ load("../Project 2/hydrodyn.RData")
 ```
 
 ### Introduction
-An introduction/overview/executive summary section that describes the dataset and variables, and summarizes the goal of the project and key steps that were performed.
-
 The project was performed on the dataset produced from a series of experiments that took place at the Delft Ship Hydromechanics Laboratory. The goal was to predict the value of residual resistance using a variety of hull geometry coefficients and Froude number as accurately as possible.
-The dataset was downloaded from the UCI Machine Learning Laboratory and the imported, the information for the column names came from scraping the html page and extracting the relevant information. Since the column names were longer than ideal they were shortened, with the definitions stored in a separate table
+The dataset was downloaded from the UCI Machine Learning Laboratory and then imported, the information for the column names came from scraping the html page and extracting the relevant information. Since the column names were longer than ideal they were shortened, with the definitions stored in a separate table
 
 ```{r attribute_definitions, echo=FALSE}
 print(att_inf)
@@ -53,7 +51,170 @@ The more sucessful, non-linear regression model was kept and within this model t
 Only one other variable had a beneficial effect on model accuracy, Length-Displacement Ratio. This was added to the model before tuning.
 The tuned values were used to produce a model from which predictied values were generated from the test set and a final RMSE calcualted.
 
+***
 
+### Method and Analysis
+
+#### Downloading and wrangling the dataset
+The Yacht Hydrodynamics dataset URL was downloaded from the UCI Machine Learning Laboratory and imported as a data table with no column headers. The column headers were scraped from the UCI page for that dataset (https://archive.ics.uci.edu/ml/datasets/Yacht+Hydrodynamics) the html manually inspected, split with '>' for easier viewing and the table containing the required data isolated as a list. This list was then then split and saved as a data table before a series of edits to this data table left it in a position in which to extract the column names. This data was tidied further with one more split, saved as a new object and a regex used to remove superfluous information. Pertinent information conerning the nature of the dataset was contained in this object so it was extracted and saved for use elsewhere.
+These remaining data were set as the column names to the imported dataset.
+
+#### Investigating the dataset structure
+According to data scraped from the UCI Machine Learening Repository, variables 1-6 are described by the information previously retained from the attribute names object
+```{r variables_defined, echo=FALSE}
+print(att_1_6)
+```
+The seventh variable is that we looked to predict, dscribed by the second retained data object
+```{r variables_defined, echo=FALSE}
+print(att_7)
+```
+Variables 1-6 would now be explored in relation to variable 7 however, before proceeding the column names were shortened to aid clarity and the attribute information object used for the column names was repurposed as a key.
+
+```{r attribute_definitions, echo=FALSE}
+print(att_inf)
+```
+
+#### Exploring the data
+```{r data_summary_intro, echo=FALSE}
+str(import_data[1:5,])
+```
+The dataset structure showed it contained 308 observations of seven variables, all numeric. The variable to predict was the Residual Resistance per Unit Weight of Displacement and there were no missing values.
+
+To begin the investigation the mean and standard deviation of the target variable were ascertained.
+```{r resid_reswei_mean_sd, echo=FALSE}
+import_data %>% summarize(mean = mean(resid_reswei), std_dev = sd(resid_reswei))
+```
+The variation in the values indicates either there are one or more factors in the dataset that influence the residual resistance by weight, the factors that influence the residual resistance are not in the dataset or that the values are random.
+By looking at the other factors in the dataset we will attempt to determine which, if any, of them influence the result. Starting from the first and working through we look at how the residual resistance changes with each factor value.
+
+1. Longitudinal position of the center of buoyancy, lcb.
+```{r lcb_resid_reswei_plot, echo=FALSE}
+import_data %>%
+  group_by(lcb) %>%
+  summarise(resid_reswei) %>%
+  ggplot(aes(lcb, resid_reswei)) +
+  geom_point()
+```
+The plot shows while there are few different values for the Longitudinal position of the center of buoyancy, for each one there are many different residual resistance values. Additionally there appear to be some clusters of values, a possible indication of a relationship with another factor or factors. One final note on this chart, it looks like no matter the value of Longitudinal Position, the residual resistance values tend to be closer to zero  and not down to random variation.
+
+2. Prismatic coefficient, cp
+```{r cp_resid_reswei_plot, echo=FALSE}
+import_data %>%
+  group_by(cp) %>%
+  summarise(resid_reswei) %>%
+  ggplot(aes(cp, resid_reswei)) +
+  geom_point()
+```
+3. Length-displacement ratio, dlr
+```{r dlr_resid_reswei_plot, echo=FALSE}
+import_data %>%
+  group_by(dlr) %>%
+  summarise(resid_reswei) %>%
+  ggplot(aes(dlr, resid_reswei)) +
+  geom_point()
+```
+4. Beam-draft ratio, bt
+```{r bt_resid_reswei_plot, echo=FALSE}
+import_data %>%
+  group_by(bt) %>%
+  summarise(resid_reswei) %>%
+  ggplot(aes(bt, resid_reswei)) +
+  geom_point()
+```
+5. Length-beam ratio, lb
+```{r lb_resid_reswei_plot, echo=FALSE}
+import_data %>%
+  group_by(lb) %>%
+  summarise(resid_reswei) %>%
+  ggplot(aes(lb, resid_reswei)) +
+  geom_point()
+```
+The four scatterplots above for the second to fifth variables follow a similar pattern as that for the first, a range of residual resistances for individual variable values with no obvious correlation observed and residual resistances being weighted towards zero. The clustering observed in the first plot persists and could be argued to be down to the controlled variation in experimental values used in the course of data gathering.
+
+6. Froude number, fn
+```{r fn_resid_reswei_plot, echo=FALSE}
+import_data %>%
+  group_by(fn) %>%
+  summarise(resid_reswei) %>%
+  ggplot(aes(fn, resid_reswei)) +
+  geom_point()
+```
+This plot appears to show this variable as having a bearing on the residual resistance. The shape could be related to the equation by which the froude number is calculated.
+$$Fr_{l} = u/\sqrt{gL_{wl}}$$
+It could be the square root element that is influencing the shape when the equation is rearranged away from Froude number as the subject. It should be noted, there is still variation in residual resistance for identical Froude numbers, indicating this is likely not the only factor to influence the residual resistance. So, while the plots for the previous factors did not give any strong indications of a relationship with the residual resistance, they should not be discounted entirely.
+
+Correlation values calculated for the above variables confirm as is observed in the scatterplots, there is no direct relationship between the variables on their own and the residual resistance with the exception of the final variable, the Froude Number.
+
+A correlation and covariance matrix was constructed to assess relationships between factors and residual resistance to look for any relationships not seen by comparing individual factors to the residual resistance. For reference, the correlation values for the individual factors against residual resistance are also seen here.
+
+Correlation
+```{r cor_matr, echo=FALSE}
+cor(import_data) %>% round(digits = 2)
+```
+Covariance
+```{r cov_matr, echo=FALSE}
+cov(import_data) %>% round(digits = 2)
+```
+
+For the most part there was little observed in the way of correlation and covariance between the factors and the residual resistance, with the exception of the Froude number, which we already identified as being significant. This result does not assist in explaining the variation in residual resistance for a constant Froude Number. However, in order for the experiment data to be at all useful we must assume that all parameters, with the exception of those in the import_data set, have remained the same so the variation observed must either be down to random variation or down to one, some or all of the remaining factors.
+
+With the above in mind the average residual resistance for each factor value was taken and the results plotted to determine if a weak relationship could be observed.
+
+1. Longitudinal position of the center of buoyancy
+```{r lcb_mean_resid_reswei_plot, echo=FALSE}
+import_data %>%
+  group_by(lcb) %>%
+  summarise(res = mean(resid_reswei)) %>%
+  ggplot(aes(lcb, res)) +
+  geom_point()
+```
+2. Prismatic coefficient
+```{r cp_mean_resid_reswei_plot, echo=FALSE}
+import_data %>%
+  group_by(cp) %>%
+  summarise(res = mean(resid_reswei)) %>%
+  ggplot(aes(cp, res)) +
+  geom_point()
+```
+3. Length-displacement ratio
+```{r dllr_mean_resid_reswei_plot, echo=FALSE}
+import_data %>%
+  group_by(dlr) %>%
+  summarise(res = mean(resid_reswei)) %>%
+  ggplot(aes(dlr, res)) +
+  geom_point()
+```
+4. Beam-draft ratio
+```{r bt_mean_resid_reswei_plot, echo=FALSE}
+import_data %>%
+  group_by(bt) %>%
+  summarise(res = mean(resid_reswei)) %>%
+  ggplot(aes(bt, res)) +
+  geom_point()
+```
+5. Length-beam ratio
+```{r lb_mean_resid_reswei_plot, echo=FALSE}
+import_data %>%
+  group_by(lb) %>%
+  summarise(res = mean(resid_reswei)) %>%
+  ggplot(aes(lb, res)) +
+  geom_point()
+```
+
+An examination of the graphs produced indicates a possible relationship between the Prismatic coefficient and the residual resistance. While not entirely clear, further support for a relationship between the Prismatic Coeffecient and the residual resistance can be found by looking at the equations for both the Prismatic Coefficient, which may show a relationship, and the Froude number, which displays a strong relataionship.
+The equation for calculating the Prismatic Coefficient is 
+
+$$C_{p} = V/L_{wl} A_{m}$$
+
+where $C_{p}$ is the Prismatic Coefficient, V is Volume, $L_{wl}$ is length at the waterline and $A_{m}$ is Cross sectional area.
+
+The equation for calculating the Froude number is
+$$Fr_{l} = u/\sqrt{gL_{wl}}$$
+where $Fn_{l}$ is the Froude Number, u is relative flow velocity, g is the acceleration due to gravity and $L_{wl}$ is length at the waterline.
+Since u is not defined we must consider it constant as we must with g. This means the only remaining part of the equation for calculating the Froude Number is $L_{wl}$ and must have a bearing on residual resistance.
+
+Relating this to Prismatic coefficient we see $L_{wl}$ is a common factor in the above equations, so where there is a relationship with residual resistance for one factor, it is likely to continue for another.
+For this reason this factor will be included in creating a prediction model.
 
 
 
