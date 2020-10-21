@@ -12,4 +12,5 @@ Assessed using RMSE, ensembles of both linear and non-linear regression methods 
 More successful modelling methods retained at early stage and futher factors added.
 Final model used to predict values on testing set and performance assessed using RMSE.
 
-File FullScript.R is the script used to download and process the data, create the model and assess the performance
+File FullScript.R is the script used to download and process the data, create the model and assess the performance.
+File hydrodyn_resistance_report.Rmd is R markdown for project report.
