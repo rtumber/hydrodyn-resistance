@@ -201,7 +201,7 @@ import_data %>%
   geom_point()
 ```
 
-An examination of the graphs produced indicates a possible relationship between the Prismatic coefficient and the residual resistance. While not entirely clear, further support for a relationship between the Prismatic Coeffecient and the residual resistance can be found by looking at the equations for both the Prismatic Coefficient, which may show a relationship, and the Froude number, which displays a strong relataionship.
+An examination of the graphs only produced an indication of a possible relationship between the Prismatic coefficient and the residual resistance. While not entirely clear, further support for a relationship between the Prismatic Coeffecient and the residual resistance can be found by looking at the equations for both the Prismatic Coefficient, which may show a relationship, and the Froude number, which displays a strong relataionship.
 The equation for calculating the Prismatic Coefficient is 
 
 $$C_{p} = V/L_{wl} A_{m}$$
@@ -215,6 +215,134 @@ Since u is not defined we must consider it constant as we must with g. This mean
 
 Relating this to Prismatic coefficient we see $L_{wl}$ is a common factor in the above equations, so where there is a relationship with residual resistance for one factor, it is likely to continue for another.
 For this reason this factor will be included in creating a prediction model.
+
+
+Returning to the Froude Number/residual resistance plot data, the mean and standard deviation of the residual resistance for each Froude number was calculated and plotted. The idea being to simplify the plot and illustrate any irregularities in the data points. The below plot demonstrates no such iregularities were found, the resistance values remained exponential and the standard deviation appeared almost linear, in line with expectations.
+```{r froude_mean_sd_res_plot, echo=FALSE}
+froude_data <- import_data %>%
+  group_by(fn) %>%
+  summarise(resid_reswei)
+
+froude_data <- froude_data %>%
+  group_by(fn) %>%
+  summarise(mean_res = mean(resid_reswei), sd_res = sd(resid_reswei))
+
+froude_data %>%
+  gather(stat, val, 'mean_res', 'sd_res') %>%
+  ggplot() +
+  geom_point(aes(fn, val, color = stat))
+```
+The residual resistance plot is non linear so it presents us two options when it comes to modelling. Either use a 
+non-linear regression method or attempt to straighten the curve and factor this into a linear regression model. 
+
+The curve is partially straightened, producing a linear relationship, by using log values of Froude number to predict log values of Residual Resistance. While not completely straight it was decided this could prove a useful approximation given it would be unlikely for the this process to produce a straight line where there are other influences on the residual resistance.
+
+```{r log_froude_log_mean_res_plot, *echo=FALSE}
+froude_data %>% mutate(log_fn= log(fn), log_res= log(mean_res)) %>%
+  ggplot() +
+  geom_point(aes(log_fn, log_res))
+```
+
+Before proceeding to modelling it is important to return to the four factors that did not appear to have any relationship with the residual resistance. It should first be noted for all factors the number of data points was low, making it challenging to observe any relationships. While it was not possible to determine a definite relationship with the remaining factors, we should not discount them from further analysis, the reasons for which are outlined below.
+
+Factor 1. Longitudinal position of the center of buoyancy, lcb.
+The longitudinal centre of buoyancy is at the centre of the underwater volume, that is, the volume of the hull that lies beneath the waterline. Since this relates to volume below the waterline it could be argued that the length of
+the hull at the waterline is important which may indicate a relationship with resistance as it has previously.
+
+Factor 3. Length-displacement ratio, dlr
+The length-displacement ratio describes how heavy a craft is in relation to its length at the waterline. Defined as $$dlr = (displacement(lb)/2240) / ((0.01*L_{wl})^3)$$
+$L_{wl}$, length at the waterline once again has a bearing on the calculated value, in the same way it does for Prismatic Coefficient and Froude Number.
+
+Factor 4. Beam-draft ratio, bt
+It would be unwise to pivot all arguements solely on the length of a hull at the waterline. The beam-draft ratio,
+the ratio of the beam, the width of the ship at the widest point at the waterline, and the draft, the distance
+between the waterline and deepest part of the hull, provides us a rough idea of the cross sectional area of submerged hull. If we look back to the equation for calculating the Prismatic Coefficient, $C_{p} = V/L_{wl} A_{m}$, $A_m$ represented the cross sectional area. While this by no means proves a link to the residual resistance, it could be argued that there are reasonable grounds to consider the Beam-draft ratio as having some influence.
+
+Factor 5. Length-beam ratio, lb
+The Length-beam ratio describes the rough shape of the hull at the waterline. If we consider the length at the #waterline and the beam measurement in the context of the other dataset factors, and we are happy that they, in part or as a whole contribute to the residual resistance, it must follow that this ratio also has an effect.
+
+
+With the above in mind we were left with a choice, produce a model that discounts these factors, based on a lack of evidence, a model that includes all these factors or produce a model that adds them stepwise and retaining more control over the training.
+
+It was decided the structured approach would be to first model the factors Froude Number followed by Prismatic Coefficient using three different linear regression models, followed by three models that do not use linear regression. At each stage the performance of the models would be assessed and after modelling Prismatic coefficient, the best performing retained.
+Following this, the remaining factors, lcb, dlr, bt and lb, would be added individually one at a time, assess model performance and remove the factors again as appropriate.
+Once all factors that improve model accuracy are isolated, the model hyperparameters would then be tuned.
+
+The assessment of the models would be based on the RMSE, on the bases that it can be applied and to both linear and non-linear regression models allowing for direct comparison of model performance, and that it can be applied to continuous data.
+
+#### Model Creation and Testing
+
+Before model building could begin, a training and test set was created.
+Since the dataset was small a 80/20 train/test split was used along with k-fold cross validation on the training set to improve accuracy before assessing the model on the test set. 10 fold cross validation with 20% sections of the training data was applied to strike a balance between having a sample size that is not too closely related to the full training data set, overtraining and processing time.
+
+The following model types were used, grouped as linear and non-linear and saved as character objects, to first get an idea of accuracy as these represent a reasonable overview of the different models available to us, before moving forward with the more sucessful of these models.
+* Linear regression models
+  + lm
+  + glm
+  + svmLinear
+* Non-linear regression models
+  + svmPoly
+  + knn
+  + RRF
+
+```{r model_ens, *eval=FALSE}
+lr_model_ens <- c("lm", "glm", "svmLinear")
+nlr_model_ens <- c("svmPoly", "knn", "RRF")
+```
+10-fold cross validation to be used in training was defined
+```{r 10_cv_def, *eval=FALSE}
+control <- trainControl(method = "cv", number = 10, p = 0.8)
+```
+The model name was added to the training function to guage progress and identify any potential bottlenecks, the defined cross validation control was added and for the linear regression models, log values for fn and resid_reswei are used. Before training, the seed was set to ensure models use the same cross validation samples.
+The training function was first applied to the Froude Number.
+```{r lr_init_model, *eval=FALSE}
+set.seed(1, sample.kind="Rounding")
+lr_fits <- lapply(lr_model_ens, function(model){ 
+  print(model)
+  train(log(resid_reswei) ~ log(fn), method = model, data = res_train, trControl = control)
+})
+```
+The RMSE for each method was then calculated. It should be noted the RMSE generated by the fit was that for log residual resistance and needed converting back to resistance.
+
+```{r lr_init_rmses, *eval=FALSE}
+n_models <- seq(1:3)
+lr_rmses <- sapply(n_models, function(m_number){
+  lr_fits[[m_number]][["results"]][["RMSE"]]
+})
+
+lr_rmses <- as.data.frame(lr_rmses) %>%
+  mutate(model_name = lr_model_ens)
+colnames(lr_rmses) <- c("RMSE", "model_name")
+lr_rmses <- lr_rmses %>%
+  mutate(adjusted_RMSE = exp(RMSE))
+```
+This was repeated but with the Prismatic Coefficient added.
+```{r lr_fr_cp, *eval=FALSE}
+set.seed(1, sample.kind="Rounding")
+lr_fits_cp <- lapply(lr_model_ens, function(model){ 
+  print(model)
+  train(log(resid_reswei) ~ log(fn) + cp, method = model, data = res_train, trControl = control)
+})
+
+lr_rmses_cp <- sapply(n_models, function(m_number){
+  lr_fits_cp[[m_number]][["results"]][["RMSE"]]
+})
+
+lr_rmses_cp <- as.data.frame(lr_rmses_cp) %>%
+  mutate(model_name = lr_model_ens)
+colnames(lr_rmses_cp) <- c("RMSE", "model_name")
+lr_rmses_cp <- lr_rmses_cp %>%
+  mutate(adjusted_RMSE = exp(RMSE))
+```
+When both sets of RMSEs were examined there was no great difference made by adding the prismatic coefficient to the models, with one of the three models tested producing a worse RMSE. This may reflect the observations made in exploring the data, where the relationship between Prismatic Coefficient and Residual Resistance was not necessarily clear.
+* Froude Number Only
+```{r lr_fn_rmses, *echo=FALSE}
+print(lr_rmses)
+```
+* Froude Number with Prismatic Coefficient
+```{r lr_fn_cp_rmses, *echo=FALSE}
+print(lr_rmses_cp)
+```
 
 
 
