@@ -263,9 +263,9 @@ froude_data <- froude_data %>%
   summarise(mean_res = mean(resid_reswei), sd_res = sd(resid_reswei))
 
 froude_data %>%
+  gather(stat, val, 'mean_res', 'sd_res') %>%
   ggplot() +
-  geom_point(aes(fn, mean_res), col = "blue") +
-  geom_point(aes(fn, sd_res), col ="red")
+  geom_point(aes(fn, val, color = stat))
 
 #The mean resistance (blue) retains an exponential appearance, standard deviation (red) doesn't look to follow.
 #This relationship is clearly non linear so it presents us two options when it comes to modelling. Either use a 
@@ -282,6 +282,8 @@ import_data %>%
   mutate(log_fn= log(fn), log_res= log(resid_reswei)) %>%
   ggplot(aes(log_fn, log_res)) +
   geom_point()
+
+#Above is unclear, use mean values to simplify
 
 froude_data %>% mutate(log_fn= log(fn), log_res= log(mean_res)) %>%
   ggplot() +
@@ -324,8 +326,8 @@ froude_data %>% mutate(log_fn= log(fn), log_res= log(mean_res)) %>%
 #three different linear regression models, followed by three models that do not use linear regression, at each 
 #stage the performance of the models will be assessed and after modelling Prismatic coefficient, the best 
 #performing retained. 
-#Following this, we will add the remaining factors lcb, dlr, bt and lb, one at a time, then tuning the model or 
-#removing the factors again as appropriate.
+#Following this, we will add the remaining factors lcb, dlr, bt and lb, one at a time, assess models performance 
+#and remove the factors again as appropriate. Once factors have been chosen the model is tuned.
 
 #The assessment of the models will be based on the RMSE on the basis that it can be applied and
 #to both linear and non-linear regression models allowing for direct comparison of model performance and that it
@@ -364,18 +366,18 @@ test_index <- createDataPartition(y = import_data$resid_reswei, times = 1, p = 0
 res_train <- import_data[-test_index,]
 res_test <- import_data[test_index,]
 
-#We will use the following model types, grouped as linear and non-linear, to first get an overview of accuracy as these represent a reasonable variety 
-#of the different models available to us, before moving forward with the more sucessful of these models and tuning
-#to improve the result.
-
-#Define 10-fold cross validation used in training
-control <- trainControl(method = "cv", number = 10, p = 0.8)
+#We will use the following model types, grouped as linear and non-linear, to first get an overview of accuracy as 
+#these represent a reasonable overview of the different models available to us, before moving forward with the more
+#sucessful of these models and tuning to improve the result.
 
 #Linear regression models
 lr_model_ens <- c("lm", "glm", "svmLinear")
 
 #Non-linear regression models
 nlr_model_ens <- c("svmPoly", "knn", "RRF")
+
+#Define 10-fold cross validation used in training
+control <- trainControl(method = "cv", number = 10, p = 0.8)
 
 #Note: model name has been added to guage progress, defined control added and as referred to before, log values for 
 #fn and resid_reswei are used. Seed is set before training to ensure models use the same cross validation samples.
