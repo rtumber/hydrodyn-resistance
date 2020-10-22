@@ -513,7 +513,8 @@ rf_fits_cp[[1]][["bestTune"]]
 
 ranger_grid <- expand.grid(mtry = seq(1:2), splitrule = "extratrees", min.node.size = 5)
 set.seed(1, sample.kind="Rounding")
-train(resid_reswei ~ fn + cp, method ="ranger", data = res_train, trControl = control, tuneGrid = ranger_grid)
+ranger_fn_cp_tune <- train(resid_reswei ~ fn + cp, method ="ranger", data = res_train, trControl = control, tuneGrid = ranger_grid)
+ranger_fn_cp_tune[["results"]]
 
 #The original tuning produces the lowest RMSE at this stage
 
@@ -527,7 +528,8 @@ rf_fits_cp[[4]][["bestTune"]]
 #look at improving precision by examining values around the best tune figures.
 rrf_grid <- expand.grid(mtry = 2, coefReg = seq(0.75, 1, 0.05), coefImp = seq(0.4, 0.5, 0.01))
 set.seed(1, sample.kind="Rounding")
-train(resid_reswei ~ fn + cp, method ="RRF", data = res_train, trControl = control, tuneGrid = rrf_grid)
+rrf_fn_cp_tune <- train(resid_reswei ~ fn + cp, method ="RRF", data = res_train, trControl = control, tuneGrid = rrf_grid)
+rrf_fn_cp_tune[["bestTune"]]
 
 #Optimal values tuning parameters for RRF model are mtry = 2, coefReg = 0.85, coefImp = 0.46
 
