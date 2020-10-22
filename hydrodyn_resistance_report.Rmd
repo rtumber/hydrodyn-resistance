@@ -15,6 +15,7 @@ library(data.table)
 library(tinytex)
 ```
 
+
 ```{r load_rdata, echo= FALSE, message=FALSE}
 load("../Project 2/hydrodyn.RData")
 ```
@@ -445,13 +446,41 @@ rrf_fn_cp_tune[["bestTune"]]
 ```
 Optimal hyperparameters for the RRF model are mtry = 2, coefReg = 0.85, coefImp = 0.46
 
-After tuning, the ranger model returned lowest RMSE but both models were retained to see if the greater accuracy displayed by the ranger model descreased with the addition of other factors, indicating a different approach may be stronger. The hyperparameter values determined throught tuning were discarded as the addition of extra factors could alter the optimal values leading to inaccurate results.
+After tuning, the ranger model returned lowest RMSE but both models were retained to see if the greater accuracy displayed by the ranger model descreased with the addition of other factors, indicating a different approach may be stronger. The hyperparameter values determined throught tuning were discarded as the addition of extra factors could alter the optimal values leading to inaccurate results, however the RMSE values determined are recorded.
 
 ##### Investigation of extra factors
-At this stage the factors for which there was no visual proof of a relationship to the residual resistance but where a mathematical relationship looked likely were added individually, one at a time. Since the precise nature 
-of any relationship, present or otherwise was unknown, this was experimental and improvements in RMSE were not assumed.
-
+At this stage the factors for which there was no visual proof of a relationship to the residual resistance but where a mathematical relationship was possible were added individually, one at a time. Since the precise nature 
+of any relationship, present or otherwise was unknown, this was purely experimental and improvements in RMSE were not assumed.
+The approach consisted of defining the two model types in the same fashion as that for every other modelling operation so far before adding the factor in question to the model containing the Froude number and Primatic coefficient. The lowest RMSE for those models with that factor was then recorded.
+To demonstrate, for the Longitudinal position of the center of buoyancy, the operation was run.
+```{r rrf_tune, eval=FALSE}
 rf_model_ens_exp <- c("ranger", "RRF")
+set.seed(1, sample.kind="Rounding")
+rf_fits_lcb <- lapply(rf_model_ens_exp, function(model){ 
+  print(model)
+  train(resid_reswei ~ fn + cp + lcb, method = model, data = res_train, trControl = control)
+})
+
+n_rf_exp_models <- seq(1:2)
+rf_rmses_lcb <- sapply(n_rf_exp_models, function(m_number){
+  min(rf_fits_lcb[[m_number]][["results"]][["RMSE"]])
+})
+
+rf_rmses_lcb <- as.data.frame(rf_rmses_lcb) %>%
+  mutate(model_name = rf_model_ens_exp)
+colnames(rf_rmses_lcb) <- c("RMSE", "model_name")
+```
+For all other factors not already included in the model this was repeated, with _lcb_ replaced by the factor.
+The results of these experiments are below
+```{r addtional_factor_RMSE_comp, echo=FALSE}
+exp_factor_RMSEs
+```
+With all the above factors with the exception of the longitudinal position of the center of buoyancy producing negative effects on prediction accuracy the model containing only the factors fn, cp, and lcb will be carried forward and tuned for prediction on the test set.
+The model hyperparameters were tuned using the same method as that for the model containing just Froude number and Prismatic coefficient and as before, the the ranger model required no further tuning.
+The tuned RMSEs below the ranger model as being the most accurate so it is this model we will use to predict values on the test set
+```{r rf_fn_cp_lcb_RMSEs, echo=FALSE}
+rf_fn_cp_lcb_RMSEs
+```
 
 
 
