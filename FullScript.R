@@ -535,7 +535,10 @@ rrf_fn_cp_tune[["bestTune"]]
 
 #After tuning, ranger model returns lowest RMSE but we will move forward with both to see if this advantage changes
 #with the addition of other factors, indicating a different approach may be stronger. We will not move forward with
-#the tuned values at this stage as the addition of other factors will likely change things.
+#the tuned values at this stage as the addition of other factors will likely change things, however the RMSE values 
+#determined are recorded.
+rrf_fn_cp_tuned_RMSE <- min(rrf_fn_cp_tune[["results"]][["RMSE"]])
+ranger_fn_cp_tuned_RMSE <- min(ranger_fn_cp_tune[["results"]][["RMSE"]])
 
 #Addition of extra factors
 #At this stage we will now begin adding the factors for which there was no visual proof of a relationship to the 
@@ -619,6 +622,12 @@ colnames(rf_rmses_lb) <- c("RMSE", "model_name")
 print(rf_rmses_lb)
 #Once again, RMSE has risen so this factor will be excluded.
 
+rf_rmses_lcb <- rf_rmses_lcb %>% mutate(factor = "lcb")
+rf_rmses_dlr <- rf_rmses_dlr %>% mutate(factor = "dlr")
+rf_rmses_bt <- rf_rmses_bt %>% mutate(factor = "bt")
+rf_rmses_lb <- rf_rmses_lb %>% mutate(factor = "lb")
+exp_factor_RMSEs <- rbind(c(ranger_fn_cp_tuned_RMSE,"ranger","fn & cp"), c(rrf_fn_cp_tuned_RMSE,"RRF","fn & cp"), rf_rmses_lcb, rf_rmses_dlr, rf_rmses_bt, rf_rmses_lb)
+
 #With all the above factors with the exception of the longitudinal position of the center of buoyancy producing
 #negative effects on prediction accuracy we will tune the model containing only the factors fn, cp, and lcb.
 
@@ -641,6 +650,9 @@ rrf_lcb_tune_fit[["bestTune"]]
 min(rrf_lcb_tune_fit[["results"]][["RMSE"]])
 #Optimal values tuning parameters for RRF model are mtry = 3, coefReg = 0.9, coefImp = 0.95, however after tuning
 #the model is less accurate than that produced using ranger.
+rrf_fn_cp_lcb_tuned_RMSE <- min(rrf_lcb_tune_fit[["results"]][["RMSE"]])
+ranger_fn_cp_lcb_tuned_RMSE <- min(rf_fits_lcb[[1]][["results"]][["RMSE"]])
+rf_fn_cp_lcb_RMSEs <- data.table(method = c("RRF", "ranger"), RMSE = c(rrf_fn_cp_lcb_tuned_RMSE, ranger_fn_cp_lcb_tuned_RMSE))
 
 #Ranger model is now produced and performance assessed on the test set.
 set.seed(1, sample.kind="Rounding")
