@@ -424,10 +424,10 @@ ranger_grid <- expand.grid(mtry = seq(1:2), splitrule = "extratrees", min.node.s
 set.seed(1, sample.kind="Rounding")
 ranger_fn_cp_tune <- train(resid_reswei ~ fn + cp, method ="ranger", data = res_train, trControl = control, tuneGrid = ranger_grid)
 ```
-```{r ranger_tune, echo=FALSE}
+```{r ranger_tune_results, echo=FALSE}
 ranger_fn_cp_tune[["results"]]
 ```
-#The model generated using the tuning parameters showed the original tuning produced the lowest RMSE.
+The model generated using the tuning parameters showed the original tuning produced the lowest RMSE.
 
 ###### RRF
 ```{r rrf_RMSE_results, echo=FALSE}
@@ -475,31 +475,84 @@ The results of these experiments are below
 ```{r addtional_factor_RMSE_comp, echo=FALSE}
 exp_factor_RMSEs
 ```
+
+##### Final model build and evaluation on test set
 With all the above factors with the exception of the longitudinal position of the center of buoyancy producing negative effects on prediction accuracy the model containing only the factors fn, cp, and lcb will be carried forward and tuned for prediction on the test set.
-The model hyperparameters were tuned using the same method as that for the model containing just Froude number and Prismatic coefficient and as before, the the ranger model required no further tuning.
-The tuned RMSEs below the ranger model as being the most accurate so it is this model we will use to predict values on the test set
+The model hyperparameters were tuned using the same method as that for the model containing just Froude number and Prismatic coefficient and as before, the ranger model required no further tuning.
+The tuned RMSE values below show the ranger model as being the most accurate
 ```{r rf_fn_cp_lcb_RMSEs, echo=FALSE}
 rf_fn_cp_lcb_RMSEs
 ```
-
-
-
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+Displayed below, the final model was used to predict residual resistance values on the test set and calculate a final RMSE.
+```{r ranger_fin_model_pred_RMSE, eval=FALSE}
+set.seed(1, sample.kind="Rounding")
+ranger_final_fit <- train(resid_reswei ~ fn + cp + lcb, method ="ranger", data = res_train, trControl = control)
+res_test_pred <- predict(ranger_final_fit, res_test)
+fin_model_RMSE <- RMSE(res_test_pred, res_test$resid_reswei)
 ```
 
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+### Results and Discussion
+The below table details the calculated RMSEs of the tuned ranger and RRF models for the Froude Number and Prismatic Coefficient and untuned model RMSEs for Froude Numbe, Prismatic Coefficient and each of the addtional factors.
+```{r addtional_factor_RMSE_comp_res, echo=FALSE}
+exp_factor_RMSEs
 ```
+Looking at these results we can see the improvement in RMSE for both model types with the addition of Longitudinal position of the center of buoyancy, lcb to the models containing Froude Number and Proismatic Coefficient.
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+There is an increase in RMSE for the Length-Displacement ratio for both ranger and RRF models.
+
+A small decrease in RMSE for the RRF model with Length-Beam ratio, lb is observed, however this improvement was not reflected in the ranger model.
+
+The RRF model containing Beam-Draught ratio, bt, showed a small decrease in RMSE. It could be argued that this small increase could be reduced to near zero or a small decrease by tuning the model, but again, the RMSE value for the ranger model was larger.
+
+For every factor added, the ranger model was more accurate so in the above cases the models were not tuned. However, the proximity to the previous RMSE could lend weight to the idea that these variables are predictors for Residual Resistance, following the theory presented earlier. This is something that could be investigated with a larger dataset.
+
+The final RMSE calcualted from predictions made using the final model was _0.9936_. While an increase is not completely unexpected given the limited sample size it is important to get an idea of the distribution of the differences between the predicted residual resistance and the actual residual resistance to identify any strengths or weaknesses within the model. To that end we will plot the two aganist the three factors used to make the predictions.
+```{r fn_ac_pred_res_resid_plot, fig.cap = "Froude Number against Predicted & Actual Residual resistance", echo=FALSE, warning=FALSE}
+set.seed(1, sample.kind="Rounding")
+res_test_conc %>%
+  ggplot() +
+  geom_jitter(aes(fn, resid_reswei, colour = "Actual Residual Resistance")) +
+  geom_jitter(aes(fn, pred_resid_reswei, colour = "Predicted Residual Resistance"))
+```
+```{r cp_ac_pred_res_resid_plot, fig.cap = "Prismatic Coefficient against Predicted & Actual Residual resistance", echo=FALSE, warning=FALSE}
+set.seed(1, sample.kind="Rounding")
+res_test_conc %>%
+  ggplot() +
+  geom_jitter(aes(cp, resid_reswei, colour = "Actual Residual Resistance")) +
+  geom_jitter(aes(cp, pred_resid_reswei, colour = "Predicted Residual Resistance"))
+```
+```{r lcb_ac_pred_res_resid_plot, fig.cap = "Longitudinal position of the center of buoyancy against Predicted & Actual Residual resistance", echo=FALSE, warning=FALSE}
+set.seed(1, sample.kind="Rounding")
+res_test_conc %>%
+  ggplot() +
+  geom_jitter(aes(lcb, resid_reswei, colour = "Actual Residual Resistance")) +
+  geom_jitter(aes(lcb, pred_resid_reswei, colour = "Predicted Residual Resistance"))
+```
+Examining the plots it seems that model accuracy decreases where Froude Number is large. This can be seen clearer by plotting the differences against each variable.
+```{r res_tst_conc_dif_fn, fig.cap = "Froude Number against Difference between Predicted and Actual Residual Resistance", echo=FALSE, warning=FALSE}
+res_test_conc_dif %>%
+  ggplot(aes(fn, res_dif)) +
+  geom_point()
+```
+```{r res_tst_conc_dif_cp, fig.cap = "Prismatic Coefficient against Difference between Predicted and Actual Residual Resistance", echo=FALSE, warning=FALSE}
+res_test_conc_dif %>%
+  ggplot(aes(cp, res_dif)) +
+  geom_point()
+```
+```{r res_tst_conc_dif_lcb, fig.cap = "Longitudinal position of the center of buoyancy against Difference between Predicted and Actual Residual Resistance", echo=FALSE, warning=FALSE}
+res_test_conc_dif %>%
+  ggplot(aes(lcb, res_dif)) +
+  geom_point()
+```
+Looking at the distribution of the differences in the plots it seems the model loses accuracy as Froude Number increases, this seems logical as the magnitude of the residual resistance increases in an exponential manner with an increase in Froude Number. The other factors, prismatic coefficient, cp, and Longitudinal position of the center of buoyancy, lcb, show a more even distribution of inaccuracy, indicating the Froude Number is the main driver. Again, this is a pattern shown earlier when exploring the data.
+
+### Conclusion
+Froude Number, Prismatic Coefficient and Longitudinal position of the center of buoyancy were used to build a model that predicted Residual Resistance. The RMSE of these predictions was 0.9936 and by examining the distribution of the errors it was demonstrated the model performed better at smaller values of Froude Number.
+With this in mind it could be argued that this could reduce the need to physically produce hull models where the Froude Number, Prismatic Coefficient and Longitudinal position of the center of buoyancy are known.
+
+Moving forward, it could be argued a larger dataset would allow for a more accurate model and perhaps allow the incorporation of some or all the remaining variables into the prediction model. Additionally, there are other models types that were not produced here and these may produce more accurate results.
+
+
+### References
+Dataset URL https://archive.ics.uci.edu/ml/datasets/Yacht+Hydrodynamics
+Dua, D. and Graff, C. (2019). UCI Machine Learning Repository [http://archive.ics.uci.edu/ml]. Irvine, CA: University of California, School of Information and Computer Science
