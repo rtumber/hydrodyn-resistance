@@ -622,10 +622,11 @@ colnames(rf_rmses_lb) <- c("RMSE", "model_name")
 print(rf_rmses_lb)
 #Once again, RMSE has risen so this factor will be excluded.
 
-rf_rmses_lcb <- rf_rmses_lcb %>% mutate(factor = "lcb")
-rf_rmses_dlr <- rf_rmses_dlr %>% mutate(factor = "dlr")
-rf_rmses_bt <- rf_rmses_bt %>% mutate(factor = "bt")
-rf_rmses_lb <- rf_rmses_lb %>% mutate(factor = "lb")
+#Add RMSEs to table for easy comparison
+rf_rmses_lcb <- rf_rmses_lcb %>% mutate(factor = "fn, cp & lcb")
+rf_rmses_dlr <- rf_rmses_dlr %>% mutate(factor = "fn, cp & dlr")
+rf_rmses_bt <- rf_rmses_bt %>% mutate(factor = "fn, cp & bt")
+rf_rmses_lb <- rf_rmses_lb %>% mutate(factor = "fn, cp & lb")
 exp_factor_RMSEs <- rbind(c(ranger_fn_cp_tuned_RMSE,"ranger","fn & cp"), c(rrf_fn_cp_tuned_RMSE,"RRF","fn & cp"), rf_rmses_lcb, rf_rmses_dlr, rf_rmses_bt, rf_rmses_lb)
 
 #With all the above factors with the exception of the longitudinal position of the center of buoyancy producing
@@ -660,7 +661,7 @@ ranger_final_fit <- train(resid_reswei ~ fn + cp + lcb, method ="ranger", data =
 
 #Predictions made on test set and performance measured against actual values
 res_test_pred <- predict(ranger_final_fit, res_test)
-RMSE(res_test_pred, res_test$resid_reswei)
+fin_model_RMSE <- RMSE(res_test_pred, res_test$resid_reswei)
 
 #Final RMSE calculated as 0.9936
 #To reach an informed conclusion we should get some idea of the distribution of the differences between the 
@@ -672,19 +673,19 @@ res_test_conc <- res_test %>%
   mutate(pred_resid_reswei = res_test_pred)
 
 set.seed(1, sample.kind="Rounding")
-res_test_plot %>%
+res_test_conc %>%
   ggplot() +
   geom_jitter(aes(fn, resid_reswei, colour = "Actual Residual Resistance")) +
   geom_jitter(aes(fn, pred_resid_reswei, colour = "Predicted Residual Resistance"))
 
 set.seed(1, sample.kind="Rounding")
-res_test_plot %>%
+res_test_conc %>%
   ggplot() +
   geom_jitter(aes(cp, resid_reswei, colour = "Actual Residual Resistance")) +
   geom_jitter(aes(cp, pred_resid_reswei, colour = "Predicted Residual Resistance"))
 
 set.seed(1, sample.kind="Rounding")
-res_test_plot %>%
+res_test_conc %>%
   ggplot() +
   geom_jitter(aes(lcb, resid_reswei, colour = "Actual Residual Resistance")) +
   geom_jitter(aes(lcb, pred_resid_reswei, colour = "Predicted Residual Resistance"))
