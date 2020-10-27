@@ -714,5 +714,5 @@ res_test_conc_dif %>%
 #pattern shown earlier when exploring the data.
 
 #data is saved so it can be loaded by the rmd file for compilation
-save.image(file = "HarvardX Data Science/9 - Capstone/Project 2/hydrodyn.RData")
-
+save.image(file = "hydrodyn.RData")
+  
