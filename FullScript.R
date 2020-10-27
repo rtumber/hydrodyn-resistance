@@ -341,8 +341,6 @@ rm(html)
 rm(split_doc)
 rm(tab2)
 rm(tabs)
-rm(att_1_6)
-rm(att_7)
 rm(data_file)
 rm(doc_text)
 
@@ -469,8 +467,7 @@ print(nlr_rmses_cp)
 #In both the linear and non-linear regression models, addition of the prismatic coefficient had either a small rise
 #or a small reduction in the RMSE for the residual resistance, however it is clear a particular non-linear 
 #approach gives better results.
-
-print(rbind(lr_rmses_cp[1:3,2:3], nlr_rmses_cp))
+print(rbind((lr_rmses_cp %>% select(-RMSE) %>% rename(RMSE = adjusted_RMSE)), nlr_rmses_cp))
 
 #With this in mind it could be useful to spend a short amount of time investigating similar model styles to see if
 #further imporovements can be made before we attempt to add any of the remaining factors.
