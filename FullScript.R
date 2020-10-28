@@ -131,7 +131,7 @@ import_data %>%
   ggplot(aes(dlr, resid_reswei)) +
   geom_point()
 
-#4. Beam-draft ratio, bt
+#4. Beam-draught ratio, bt
 import_data %>%
   group_by(bt) %>%
   summarise(resid_reswei) %>%
@@ -213,7 +213,7 @@ import_data %>%
   ggplot(aes(dlr, res)) +
   geom_point()
 
-#4. Beam-draft ratio
+#4. Beam-draught ratio
 import_data %>%
   group_by(bt) %>%
   summarise(res = mean(resid_reswei)) %>%
@@ -304,13 +304,13 @@ froude_data %>% mutate(log_fn= log(fn), log_res= log(mean_res)) %>%
 #Defined as dlr = (displacement(lb)/2240)/((0.01*L_wl)^3), L_wl, length at the waterline once again has a bearing 
 #on the calculated value, in the same way it does for Prismatic Coefficient and Froude Number.
 
-#4. Beam-draft ratio, bt
-#It would be unwise to pivot all arguements solely on the length of a hull at the waterline. The beam-draft ratio,
-#the ratio of the beam, the width of the ship at the widest point at the waterline, and the draft, the distance
+#4. Beam-draught ratio, bt
+#It would be unwise to pivot all arguements solely on the length of a hull at the waterline. The beam-draught ratio,
+#the ratio of the beam, the width of the ship at the widest point at the waterline, and the draught, the distance
 #between the waterline and deepest part of the hull, provides us a rough idea of the cross sectional area of 
 #submerged hull. If we look back to the equation for calculating the Prismatic Coefficient, C_p = V/L_wl * A_m, 
 #A_m represented the cross sectional area. While this by no means proves a link to the residual resistance, it 
-#could be argued that there are reasonable grounds to consider the Beam-draft ratio as having some influence on the
+#could be argued that there are reasonable grounds to consider the Beam-draught ratio as having some influence on the
 #residual resistance
 
 #5. Length-beam ratio, lb
@@ -582,7 +582,7 @@ print(rf_rmses_dlr)
 
 #The RMSEs reported now are higher than before, so we will not include this factor in the model
 
-#Beam-draft ratio, bt
+#Beam-draught ratio, bt
 set.seed(1, sample.kind="Rounding")
 rf_fits_bt <- lapply(rf_model_ens_exp, function(model){ 
   print(model)
