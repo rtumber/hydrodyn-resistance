@@ -21,8 +21,8 @@ load("hydrodyn.RData")
 ```
 
 ## Introduction
-The project was performed on the dataset produced from a series of experiments that took place at the Delft Ship Hydromechanics Laboratory. The goal was to predict the value of residual resistance using a variety of hull geometry coefficients and Froude number as accurately as possible.
-The dataset was downloaded from the UCI Machine Learning Laboratory and then imported, the information for the column names came from scraping the html page and extracting the relevant information. Since the column names were longer than ideal they were shortened, with the definitions stored in a separate table
+This investigation was performed on the dataset produced from a series of experiments that took place at the Delft Ship Hydromechanics Laboratory. The goal was to predict the value of residual resistance per unit weight of displacement from a variety of hull geometry coefficients and Froude number as accurately as possible.
+The dataset was downloaded from the UCI Machine Learning Laboratory and then imported, the information for the column names came from scraping the html on the webpage and extracting the relevant information. Since the column names were longer than ideal they were shortened, with the definitions stored separetley for reference.
 
 ```{r attribute_definitions, echo=FALSE}
 knitr::kable(att_inf)
@@ -38,17 +38,17 @@ All attributes were numerical and there were no missing entries in the dataset. 
 
 In examining the data, each variable was plotted against the residual resistance to determine if there were any obvious correlations and the correlation coefficients calculated. Following this, a correlation and covariance matrix was produced, looking for relationships not seen in the visualisations.
 The only variable showing a clear relationship was the Froude number.
-Where no clear relationship was observed, further visualisations were made using the average residual resistance at different values of variables to attempt to identify a weak relationship, here, the Prismatic Coefficient showed a possible relationship. 
+Where no clear relationship was observed, further visualisations were made using the average residual resistance at different values of variables in an attempt to identify a weak relationship. Here, the Prismatic Coefficient showed a possible relationship. 
 The Froude number was then examined more closely, the observed exponential style curve was straightened to allow the option of modelling using a linear regression approach.
 
 It was decided that all variables should, in theory, have an effect on the residual resistance.
 
 Before modelling, the data were split into a training and test set.
-Initially, two models were built using Caret to predict residual resistance from Froude Number only and then with the Prismatic Coefficient, using two separate ensembles, one using linear regression methods and the log of the Froude Number and the other using non-linear regression methods. Model accuracy was assessed using RMSE as this could be applied to be both model types.
+Initially, two models were built using Caret to predict residual resistance from Froude Number only and then with the Prismatic Coefficient, using two separate ensembles, one using linear regression methods and the log of the Froude Number and the other using non-linear regression methods. Model accuracy was assessed using RMSE as this could be applied to both model types.
 
 The more sucessful, non-linear regression model was kept and within this model the Random Forest type method was most accurate. As a result, a new ensemble was put together with a selection of Random Forest Type methods, and the generated models assessed again, with the most accurate two being carried forward. At this stage each of the remaining variables was added one at a time and only where RMSE was improved was the variable set aside to add at the end.
 Only one other variable had a beneficial effect on model accuracy, Length-Displacement Ratio. This was added to the model before tuning.
-The tuned values were used to produce a model from which predictied values were generated from the test set and a final RMSE calcualted.
+The tuned values were used to produce a model from which predicted residual resistance values were generated from the test set and a final RMSE calculated.
 
 ***
 
@@ -56,8 +56,8 @@ The tuned values were used to produce a model from which predictied values were 
 
 ### Downloading and wrangling the dataset  
 
-The Yacht Hydrodynamics dataset URL was downloaded from the UCI Machine Learning Laboratory and imported as a data table with no column headers. The column headers were scraped from the UCI page for that dataset (https://archive.ics.uci.edu/ml/datasets/Yacht+Hydrodynamics) the html manually inspected, split with '>' for easier viewing and the table containing the required data isolated as a list. This list was then then split and saved as a data table before a series of edits to this data table left it in a position in which to extract the column names. This data was tidied further with one more split, saved as a new object and a regex used to remove superfluous information. Pertinent information conerning the nature of the dataset was contained in this object so it was extracted and saved for use elsewhere.
-These remaining data were set as the column names to the imported dataset.
+The Yacht Hydrodynamics dataset URL was downloaded from the UCI Machine Learning Laboratory and imported as a data table with no column headers. The column headers were scraped from the UCI page for that dataset (https://archive.ics.uci.edu/ml/datasets/Yacht+Hydrodynamics) the html manually inspected, split with '>' for easier viewing and the table containing the required data isolated as a list. This list was then then split and saved as a data table before a series of edits to this data table left it in a position in which to extract the column names. This data was tidied further with one more split, saved as a new object and a regex used to remove superfluous information. Pertinent information concerning the nature of the dataset was contained in this object so it was extracted and saved for use elsewhere.
+The remaining data were set as the column names to the imported dataset.
 
 ### Investigating the dataset structure  
 
@@ -65,7 +65,7 @@ According to data scraped from the UCI Machine Learening Repository, variables 1
 ```{r variables_defined_1_6, echo=FALSE}
 att_1_6
 ```
-The seventh variable is that we looked to predict, dscribed by the second retained data object
+The seventh variable is that we looked to predict, described by the second retained data object
 ```{r variables_defined_7, echo=FALSE}
 att_7
 ```
@@ -88,8 +88,8 @@ knitr::kable(import_data %>% summarize(mean = mean(resid_reswei), std_dev = sd(r
 ```
 
 The variation in the values indicates either there are one or more factors in the dataset that influence the residual resistance by weight, the factors that influence the residual resistance are not in the dataset or that the values are random.
-By looking at the other factors in the dataset we will attempt to determine which, if any, of them influence the result. Starting from the first and working through we look at how the residual resistance changes with each factor value.  
-
+By looking at the factors in the dataset we will attempt to determine which, if any, of them influence the result. Starting from the first and working through we look at how the residual resistance changes with each factor value.  
+\newpage
 1. Longitudinal position of the center of buoyancy, lcb.
 
 ```{r lcb_resid_reswei_plot, echo=FALSE, warning=FALSE, message=FALSE}
@@ -101,7 +101,7 @@ import_data %>%
 ```  
 
 
-The plot shows while there are few different values for the Longitudinal position of the center of buoyancy, for each one there are many different residual resistance values. Additionally there appear to be some clusters of values, a possible indication of a relationship with another factor or factors. One final note on this chart, it looks like no matter the value of Longitudinal Position, the residual resistance values tend to be closer to zero  and not down to random variation.
+The plot shows while there are few different values for the Longitudinal position of the center of buoyancy, for each one there are many different residual resistance values. Additionally there appear to be some clusters of values, a possible indication of a relationship with another factor or factors. One final note on this chart, it looks like no matter the value of lcb, the residual resistance values tend to be closer to zero and not down to random variation.
 
 2. Prismatic coefficient, cp  
 
@@ -113,7 +113,7 @@ import_data %>%
   geom_point()
 ```  
 
-
+\newpage
 3. Length-displacement ratio, dlr  
 
 ```{r dlr_resid_reswei_plot, echo=FALSE, warning=FALSE, message=FALSE}
@@ -125,7 +125,7 @@ import_data %>%
 ```  
 
 
-4. Beam-draft ratio, bt  
+4. Beam-draught ratio, bt  
 
 ```{r bt_resid_reswei_plot, echo=FALSE, warning=FALSE, message=FALSE}
 import_data %>%
@@ -159,26 +159,26 @@ import_data %>%
   geom_point()
 ```
 
-This plot appears to show this variable as having a bearing on the residual resistance. The shape could be related to the equation by which the froude number is calculated.
+This plot appears to show the Froude number as having a bearing on the residual resistance. The shape could be related to the equation by which the Froude number is calculated.
 $$Fr_{l} = u/\sqrt{gL_{wl}}$$
-It could be the square root element that is influencing the shape when the equation is rearranged away from Froude number as the subject. It should be noted, there is still variation in residual resistance for identical Froude numbers, indicating this is likely not the only factor to influence the residual resistance. So, while the plots for the previous factors did not give any strong indications of a relationship with the residual resistance, they should not be discounted entirely.
+It could be the square root element that is influencing the shape of the curve when the equation is rearranged away from Froude number as the subject. It should be noted, there is still variation in residual resistance for identical Froude numbers, indicating this is likely not the only factor to influence the residual resistance. So, while the plots for the previous factors did not give any strong indications of a relationship with the residual resistance, they should not be discounted entirely.
 
 Correlation values calculated for the above variables confirm as is observed in the scatterplots, there is no direct relationship between the variables on their own and the residual resistance with the exception of the final variable, the Froude Number.
 
-A correlation and covariance matrix was constructed to assess relationships between factors and residual resistance to look for any relationships not seen by comparing individual factors to the residual resistance. For reference, the correlation values for the individual factors against residual resistance are also seen here.
+Correlation and covariance matrices were constructed to assess relationships between factors and residual resistance to look for any relationships not seen by comparing individual factors to the residual resistance. For reference, the correlation values for the individual factors against residual resistance are also seen here.
 
 Correlation
 ```{r cor_matr, echo=FALSE}
 knitr::kable(cor(import_data) %>% round(digits = 2))
 ```
 
-
+\newpage
 Covariance
 ```{r cov_matr, echo=FALSE}
 knitr::kable(cov(import_data) %>% round(digits = 2))
 ```
 
-For the most part there was little observed in the way of correlation and covariance between the factors and the residual resistance, with the exception of the Froude number, which we already identified as being significant. This result does not assist in explaining the variation in residual resistance for a constant Froude Number. However, in order for the experiment data to be at all useful we must assume that all parameters, with the exception of those in the import_data set, have remained the same so the variation observed must either be down to random variation or down to one, some or all of the remaining factors.
+For the most part there was little observed in the way of correlation and covariance between the factors and the residual resistance, with the exception of the Froude number, which we already identified as potentially being significant. This result does not assist in explaining the variation in residual resistance for a constant Froude Number. However, in order for the experimental data to be at all useful we must assume that all parameters, with the exception of those in the dataset, have remained the same so the variation observed must either be down to random variation or down to one, some or all of the remaining factors.
 
 With the above in mind the average residual resistance for each factor value was taken and the results plotted to determine if a weak relationship could be observed.
 
@@ -191,7 +191,7 @@ import_data %>%
   ggplot(aes(lcb, res)) +
   geom_point()
 ```
-
+\newpage
 2. Prismatic coefficient
 
 ```{r cp_mean_resid_reswei_plot, echo=FALSE, warning=FALSE, message=FALSE}
@@ -204,7 +204,7 @@ import_data %>%
 
 3. Length-displacement ratio
 
-```{r dllr_mean_resid_reswei_plot, echo=FALSE, warning=FALSE, message=FALSE}
+```{r dlr_mean_resid_reswei_plot, echo=FALSE, warning=FALSE, message=FALSE}
 import_data %>%
   group_by(dlr) %>%
   summarise(res = mean(resid_reswei)) %>%
@@ -212,7 +212,7 @@ import_data %>%
   geom_point()
 ```
 
-4. Beam-draft ratio
+4. Beam-draught ratio
 
 ```{r bt_mean_resid_reswei_plot, echo=FALSE, warning=FALSE, message=FALSE}
 import_data %>%
@@ -232,7 +232,7 @@ import_data %>%
   geom_point()
 ```
 
-An examination of the graphs only produced an indication of a possible relationship between the Prismatic coefficient and the residual resistance. While not entirely clear, further support for a relationship between the Prismatic Coeffecient and the residual resistance can be found by looking at the equations for both the Prismatic Coefficient, which may show a relationship, and the Froude number, which displays a strong relataionship.
+An examination of the graphs only produced an indication of a possible relationship between the Prismatic coefficient and the residual resistance. While not entirely clear, further support for this relationship can be found by looking at the equations for both the Prismatic Coefficient, which may show a relationship, and the Froude number, which displays a strong relationship.
 The equation for calculating the Prismatic Coefficient is 
 
 $$C_{p} = V/L_{wl} A_{m}$$
@@ -242,10 +242,10 @@ where $C_{p}$ is the Prismatic Coefficient, V is Volume, $L_{wl}$ is length at t
 The equation for calculating the Froude number is
 $$Fr_{l} = u/\sqrt{gL_{wl}}$$
 where $Fn_{l}$ is the Froude Number, u is relative flow velocity, g is the acceleration due to gravity and $L_{wl}$ is length at the waterline.
-Since u is not defined we must consider it constant as we must with g. This means the only remaining part of the equation for calculating the Froude Number is $L_{wl}$ and must have a bearing on residual resistance.
+Since u is not defined we must consider it constant as we do with g. This means the only remaining part of the equation for calculating the Froude Number is $L_{wl}$ and must have a bearing on residual resistance.
 
 Relating this to Prismatic coefficient we see $L_{wl}$ is a common factor in the above equations, so where there is a relationship with residual resistance for one factor, it is likely to continue for another.
-For this reason this factor will be included in creating a prediction model.
+For this reason this factor will be included in creating a prediction model.  
 
 
 Returning to the Froude Number/residual resistance plot data, the mean and standard deviation of the residual resistance for each Froude number was calculated and plotted. The idea being to simplify the plot and illustrate any irregularities in the data points. The below plot demonstrates no such iregularities were found, the resistance values remained exponential and the standard deviation appeared almost linear, in line with expectations.
@@ -268,7 +268,7 @@ froude_data %>%
 The residual resistance plot is non linear so it presents us two options when it comes to modelling. Either use a 
 non-linear regression method or attempt to straighten the curve and factor this into a linear regression model. 
 
-The curve is partially straightened, producing a linear relationship, by using log values of Froude number to predict log values of Residual Resistance. While not completely straight it was decided this could prove a useful approximation given it would be unlikely for the this process to produce a straight line where there are other influences on the residual resistance.
+The curve is partially straightened, producing a linear relationship, by using log values of Froude number to predict log values of Residual Resistance. While the result was not completely straight it was decided this could prove a useful approximation given it would be unlikely for this process to produce a straight line where there are other influences on the residual resistance.
 
 ```{r log_froude_log_mean_res_plot, echo=FALSE, warning=FALSE, message=FALSE}
 froude_data %>% mutate(log_fn= log(fn), log_res= log(mean_res)) %>%
@@ -278,30 +278,34 @@ froude_data %>% mutate(log_fn= log(fn), log_res= log(mean_res)) %>%
 
 Before proceeding to modelling it is important to return to the four factors that did not appear to have any relationship with the residual resistance. It should first be noted for all factors the number of data points was low, making it challenging to observe any relationships. While it was not possible to determine a definite relationship with the remaining factors, we should not discount them from further analysis, the reasons for which are outlined below.
 
-Factor 1. Longitudinal position of the center of buoyancy, lcb.
+Factor 1. Longitudinal position of the center of buoyancy, lcb.  
+
 The longitudinal centre of buoyancy is at the centre of the underwater volume, that is, the volume of the hull that lies beneath the waterline. Since this relates to volume below the waterline it could be argued that the length of
 the hull at the waterline is important which may indicate a relationship with resistance as it has previously.
 
-Factor 3. Length-displacement ratio, dlr
+Factor 3. Length-displacement ratio, dlr.  
+
 The length-displacement ratio describes how heavy a craft is in relation to its length at the waterline. Defined as $$dlr = (displacement(lb)/2240) / ((0.01*L_{wl})^3)$$
 $L_{wl}$, length at the waterline once again has a bearing on the calculated value, in the same way it does for Prismatic Coefficient and Froude Number.
 
-Factor 4. Beam-draft ratio, bt
-It would be unwise to pivot all arguements solely on the length of a hull at the waterline. The beam-draft ratio,
-the ratio of the beam, the width of the ship at the widest point at the waterline, and the draft, the distance
-between the waterline and deepest part of the hull, provides us a rough idea of the cross sectional area of submerged hull. If we look back to the equation for calculating the Prismatic Coefficient, $C_{p} = V/L_{wl} A_{m}$, $A_m$ represented the cross sectional area. While this by no means proves a link to the residual resistance, it could be argued that there are reasonable grounds to consider the Beam-draft ratio as having some influence.
+Factor 4. Beam-draught ratio, bt.  
 
-Factor 5. Length-beam ratio, lb
-The Length-beam ratio describes the rough shape of the hull at the waterline. If we consider the length at the #waterline and the beam measurement in the context of the other dataset factors, and we are happy that they, in part or as a whole contribute to the residual resistance, it must follow that this ratio also has an effect.
+It would be unwise to pivot all arguements solely on the length of a hull at the waterline. The beam-draught ratio,
+the ratio of the beam, the width of the ship at the widest point at the waterline, and the draught, the distance
+between the waterline and deepest part of the hull, provides us a rough idea of the cross sectional area of submerged hull. If we look back to the equation for calculating the Prismatic Coefficient, $C_{p} = V/L_{wl} A_{m}$, $A_m$ represented the cross sectional area. While this by no means proves a link to the residual resistance, it could be argued that there are reasonable grounds to consider the Beam-draught ratio as having some influence.
+
+Factor 5. Length-beam ratio, lb.  
+
+The Length-beam ratio describes the rough shape of the hull at the waterline. If we consider the length at the waterline and the beam measurement in the context of the other dataset factors, and we are happy that they, in part or as a whole contribute to the residual resistance, it must follow that this ratio also has an effect.
 
 
-With the above in mind we were left with a choice, produce a model that discounts these factors, based on a lack of evidence, a model that includes all these factors or produce a model that adds them stepwise and retaining more control over the training.
+With the above in mind we were left with a choice, produce a model that discounts these factors, based on a lack of evidence, a model that includes all these factors or produce a model that adds them stepwise thus retaining more control over the training in light of the small sample size.
 
-It was decided the structured approach would be to first model the factors Froude Number followed by Prismatic Coefficient using three different linear regression models, followed by three models that do not use linear regression. At each stage the performance of the models would be assessed and after modelling Prismatic coefficient, the best performing retained.
-Following this, the remaining factors, lcb, dlr, bt and lb, would be added individually one at a time, assess model performance and remove the factors again as appropriate.
+It was decided the structured approach would be to first model the factors Froude Number followed by Prismatic Coefficient using three different linear regression models, followed by three models that do not use linear regression. At each stage the performance of the models would be assessed and after modelling Prismatic coefficient, the best performing retained. Model types similar to the most sucessful would then be tested to attempt to improve accuracy further.  
+Following this, the remaining factors, lcb, dlr, bt and lb, would be added individually one at a time, model performance assessed and the factors removed again as appropriate.
 Once all factors that improve model accuracy are isolated, the model hyperparameters would then be tuned.
 
-The assessment of the models would be based on the RMSE, on the bases that it can be applied and to both linear and non-linear regression models allowing for direct comparison of model performance, and that it can be applied to continuous data.
+The assessment of the models would be based on the RMSE, on the bases that it can be applied to both linear and non-linear regression models allowing for direct comparison of model performance, and that it can be applied to continuous data.
 
 ### Model Creation and Testing
 
@@ -309,10 +313,13 @@ Before model building could begin, a training and test set was created.
 Since the dataset was small a 80/20 train/test split was used along with k-fold cross validation on the training set to improve accuracy before assessing the model on the test set. 10 fold cross validation with 20% sections of the training data was applied to strike a balance between having a sample size that is not too closely related to the full training data set, overtraining and processing time.
 
 The following model types were used, grouped as linear and non-linear and saved as character objects, to first get an idea of accuracy as these represent a reasonable overview of the different models available to us, before moving forward with the more sucessful of these models.
+
 * Linear regression models
   + lm
   + glm
   + svmLinear
+  
+\newpage
 * Non-linear regression models
   + svmPoly
   + knn
@@ -322,11 +329,11 @@ The following model types were used, grouped as linear and non-linear and saved 
 lr_model_ens <- c("lm", "glm", "svmLinear")
 nlr_model_ens <- c("svmPoly", "knn", "RRF")
 ```
-10-fold cross validation to be used in training was defined
+10-fold cross validation control to be used in training was defined
 ```{r 10_cv_def, eval=FALSE}
 control <- trainControl(method = "cv", number = 10, p = 0.8)
 ```
-The model name was added to the training function to guage progress and identify any potential bottlenecks and the defined cross validation control was added.
+The model name was added to the training function to gauge progress and identify any potential bottlenecks and the defined cross validation control was added.
 
 #### Linear Regression  
   
@@ -376,16 +383,16 @@ lr_rmses_cp <- lr_rmses_cp %>%
 ```
 When both sets of RMSEs were examined there was no great difference made by adding the prismatic coefficient to the models, with one of the three models tested producing a worse RMSE. This may reflect the observations made in exploring the data, where the relationship between Prismatic Coefficient and Residual Resistance was not necessarily clear.
 
-* Froude Number Only
-
+Froude Number Only
+  
 ```{r lr_fn_rmses, echo=FALSE}
-knitr::kable(lr_rmses)
+knitr::kable(lr_rmses, col.names = c("RMSE", "Model Name", "Adjusted RMSE"))
 ```
 
-* Froude Number with Prismatic Coefficient
-
+Froude Number with Prismatic Coefficient
+  
 ```{r lr_fn_cp_rmses, echo=FALSE}
-knitr::kable(lr_rmses_cp)
+knitr::kable(lr_rmses_cp, col.names = c("RMSE", "Model Name", "Adjusted RMSE"))
 ```
 
 #### Non-Linear Regression  
@@ -411,32 +418,32 @@ colnames(nlr_rmses) <- c("RMSE", "model_name")
 ```
 As was the case for the Linear Regression models, the above was repeated but with the addition of the Prismatic Coefficient. This gave the below RMSEs.
 
-* Froude Number Only
+Froude Number Only
 
 ```{r nlr_fn_rmses, echo=FALSE}
-knitr::kable(nlr_rmses)
+knitr::kable(nlr_rmses, col.names = c("RMSE", "Model Name"))
 ```
 
-* Froude Number with Prismatic Coefficient
+Froude Number with Prismatic Coefficient
 
 ```{r nlr_fn_cp_rmses, echo=FALSE}
-knitr::kable(nlr_rmses_cp)
+knitr::kable(nlr_rmses_cp, col.names = c("RMSE", "Model Name"))
 ```
 
-In both the linear and non-linear regression models, addition of the prismatic coefficient had either a small rise or a small reduction in the RMSE for the residual resistance, however it is clear a Random Forest approach gives better results.
+In both the linear and non-linear regression models, addition of the prismatic coefficient produced either a small rise or a small reduction in the RMSE for the residual resistance, however it is clear a Random Forest approach gives better results.
 
 ```{r lr_nlr_RMSE_compare, echo=FALSE}
-knitr::kable(rbind((lr_rmses_cp %>% select(-RMSE) %>% rename(RMSE = adjusted_RMSE)), nlr_rmses_cp))
+knitr::kable(rbind((lr_rmses_cp %>% select(-RMSE) %>% rename(RMSE = adjusted_RMSE)), nlr_rmses_cp), col.names = c("Model Name", "RMSE"))
 ```
 
-With this in mind other Random Forest models were investigated to see if further improvements could be made before attempting to add any of the remaining factors. 
+With this in mind, other Random Forest models were investigated to see if further improvements could be made before attempting to add any of the remaining factors. 
 
 #### Random Forest  
   
   
 The Random Forest models used were Ranger, Rborist, Random Forest (rf) and Regularized Random Forest (RRF).
 
-Again, a similar approach to the above in terms of testing and evaluating multiple model types was taken.
+A similar approach to the above in terms of testing and evaluating multiple model types at once was taken.
 ```{r rf_fn_cp_model_rmses, eval=FALSE}
 rf_model_ens <- c("ranger", "Rborist", "rf", "RRF")
 
@@ -457,10 +464,10 @@ colnames(rf_rmses_cp) <- c("RMSE", "model_name")
 ```
 
 ```{r rf_RMSE_compare, echo=FALSE}
-knitr::kable(rf_rmses_cp)
+knitr::kable(rf_rmses_cp, col.names = c("RMSE", "Model Name"))
 ```
 
-There were two models performing noticably better than the others, ranger and RRF. The fitted models were examined and based on the information on current tuning at RMSE minimum, the hyperparameters were tuned where necessary to provide a solid baseline RMSE before the investigation of the effect of the addition of further factors.
+There were two models performing noticably better than the others, ranger and RRF. The fitted models were examined and based on the information on current tuning at RMSE minimum, the hyperparameters were tuned where necessary to provide a solid baseline RMSE before the investigation of the effect of addition of further factors.
 
 #### Tuning
 #### _ranger_
@@ -473,7 +480,7 @@ knitr::kable(rf_fits_cp[[1]][["bestTune"]])
 The above describes the combination of parameters used in modelling along with those which were most sucessful.
 
 For _mtry_ the default is the _number of predictor variables/3_. In the dataset this number would not change, even if all the variables were added to the model, but to be thorough the performance of mtry values 1-2 was checked.
-_split rule_ set as _extratrees_ appeared more successful than variance so was kept as is.
+_split rule_ set as _extratrees_ appeared more successful than _variance_ so was kept as is.
 Since _min.node.size_ has a default value of 5 for regression, and a regression was performed, this parameter was left as 5.
 Putting this all together and building the model again with these adjusted parameters gave the below
 ```{r ranger_tune, eval=FALSE}
@@ -489,6 +496,7 @@ knitr::kable(ranger_fn_cp_tune[["results"]])
 
 The model generated using the tuning parameters showed the original tuning produced the lowest RMSE.
 
+\newpage
 #### _RRF_
 
 ```{r rrf_RMSE_results, echo=FALSE}
@@ -512,15 +520,15 @@ knitr::kable(rrf_fn_cp_tune[["bestTune"]])
 
 Optimal hyperparameters for the RRF model are mtry = 2, coefReg = 0.85, coefImp = 0.46
 
-After tuning, the ranger model returned lowest RMSE but both models were retained to see if the greater accuracy displayed by the ranger model descreased with the addition of other factors, indicating a different approach may be stronger. The hyperparameter values determined throught tuning were discarded as the addition of extra factors could alter the optimal values leading to inaccurate results, however the RMSE values determined are recorded.
+After tuning, the ranger model returned lowest RMSE but both models were retained to see if the greater accuracy displayed by the ranger model descreased with the addition of other factors, indicating a different approach may be stronger. The hyperparameter values determined through tuning were discarded as the addition of extra factors could alter the optimal values leading to inaccurate results, however the RMSE values determined were recorded.
 
 #### Investigation of extra factors  
   
   
 At this stage the factors for which there was no visual proof of a relationship to the residual resistance but where a mathematical relationship was possible were added individually, one at a time. Since the precise nature 
 of any relationship, present or otherwise was unknown, this was purely experimental and improvements in RMSE were not assumed.
-The approach consisted of defining the two model types in the same fashion as that for every other modelling operation so far before adding the factor in question to the model containing the Froude number and Primatic coefficient. The lowest RMSE for those models with that factor was then recorded.
-To demonstrate, for the Longitudinal position of the center of buoyancy, the operation was run.
+The approach consisted of defining the two model types in the same fashion as that for every other modelling operation so far before adding the factor in question to the model containing the Froude number and Prismatic coefficient. The lowest RMSE for those models with that factor was then recorded.
+To demonstrate, for the Longitudinal position of the center of buoyancy, the following operation was run.
 ```{r rrf_tune_exp, eval=FALSE}
 rf_model_ens_exp <- c("ranger", "RRF")
 set.seed(1, sample.kind="Rounding")
@@ -539,16 +547,16 @@ rf_rmses_lcb <- as.data.frame(rf_rmses_lcb) %>%
   mutate(model_name = rf_model_ens_exp)
 colnames(rf_rmses_lcb) <- c("RMSE", "model_name")
 ```
-For all other factors not already included in the model this was repeated, with _lcb_ replaced by the factor.
+For all other factors not already included in the model this was repeated, with _lcb_ replaced by the factor being tested.
 The results of these experiments are below
 
 ```{r addtional_factor_RMSE_comp, echo=FALSE}
-knitr::kable(exp_factor_RMSEs)
+knitr::kable(exp_factor_RMSEs, col.names = c("RMSE", "Model Name", "Factors"))
 ```
 
 #### Final model build and evaluation on test set
 
-With all the above factors with the exception of the longitudinal position of the center of buoyancy producing negative effects on prediction accuracy the model containing only the factors fn, cp, and lcb will be carried forward and tuned for prediction on the test set.
+With all the above factors except the longitudinal position of the center of buoyancy producing negative effects on prediction accuracy, the model containing only the factors fn, cp, and lcb will be carried forward and tuned for prediction on the test set.
 The model hyperparameters were tuned using the same method as that for the model containing just Froude number and Prismatic coefficient and as before, the ranger model required no further tuning.
 The tuned RMSE values below show the ranger model as being the most accurate
 
@@ -569,13 +577,13 @@ fin_model_RMSE <- RMSE(res_test_pred, res_test$resid_reswei)
 
 ## Results and Discussion
 
-The below table details the calculated RMSEs of the tuned ranger and RRF models for the Froude Number and Prismatic Coefficient and untuned model RMSEs for Froude Numbe, Prismatic Coefficient and each of the addtional factors.
+The below table details the calculated RMSEs of the tuned ranger and RRF models for the Froude Number and Prismatic Coefficient and untuned model RMSEs for Froude Number, Prismatic Coefficient and each of the addtional factors.
 
 ```{r addtional_factor_RMSE_comp_res, echo=FALSE}
-knitr::kable(exp_factor_RMSEs)
+knitr::kable(exp_factor_RMSEs, col.names = c("RMSE", "Model Name", "Factors"))
 ```
 
-Looking at these results we can see the improvement in RMSE for both model types with the addition of Longitudinal position of the center of buoyancy, lcb to the models containing Froude Number and Proismatic Coefficient.
+Looking at these results we can see the improvement in RMSE for both model types with the addition of Longitudinal position of the center of buoyancy, lcb to the models containing Froude Number and Prismatic Coefficient.
 
 There is an increase in RMSE for the Length-Displacement ratio for both ranger and RRF models.
 
@@ -585,8 +593,9 @@ The RRF model containing Beam-Draught ratio, bt, showed a small decrease in RMSE
 
 For every factor added, the ranger model was more accurate so in the above cases the models were not tuned. However, the proximity to the previous RMSE could lend weight to the idea that these variables are predictors for Residual Resistance, following the theory presented earlier. This is something that could be investigated with a larger dataset.
 
-The final RMSE calcualted from predictions made using the final model was _0.9936_. While an increase is not completely unexpected given the limited sample size it is important to get an idea of the distribution of the differences between the predicted residual resistance and the actual residual resistance to identify any strengths or weaknesses within the model. To that end we will plot the two aganist the three factors used to make the predictions.
+The final RMSE calculated from predictions made using the final model was _0.9936_. While an increase is not completely unexpected given the limited sample size it is important to get an idea of the distribution of the differences between the predicted residual resistance and the actual residual resistance to identify any strengths or weaknesses within the model. To that end we will plot the two aganist the three factors used to make the predictions.
 
+\newpage
 Froude Number
 
 ```{r fn_ac_pred_res_resid_plot, echo=FALSE,  warning=FALSE, message=FALSE}
@@ -643,7 +652,7 @@ res_test_conc_dif %>%
   geom_point()
 ```
 
-Looking at the distribution of the differences in the plots it seems the model loses accuracy as Froude Number increases, this seems logical as the magnitude of the residual resistance increases in an exponential manner with an increase in Froude Number. The other factors, prismatic coefficient, cp, and Longitudinal position of the center of buoyancy, lcb, show a more even distribution of inaccuracy, indicating the Froude Number is the main driver. Again, this is a pattern shown earlier when exploring the data.
+Looking at the distribution of the differences in the plots it seems the model loses accuracy as Froude Number increases, this seems logical as the magnitude of the residual resistance increases in an exponential manner with an increase in Froude Number. The other factors, Prismatic coefficient, cp, and Longitudinal position of the center of buoyancy, lcb, show a more even distribution of inaccuracy, indicating the Froude Number is the main driver. Again, this is a pattern shown earlier when exploring the data.
 
 ***
 
@@ -652,7 +661,7 @@ Looking at the distribution of the differences in the plots it seems the model l
 Froude Number, Prismatic Coefficient and Longitudinal position of the center of buoyancy were used to build a model that predicted Residual Resistance. The RMSE of these predictions was 0.9936 and by examining the distribution of the errors it was demonstrated the model performed better at smaller values of Froude Number.
 With this in mind it could be argued that this could reduce the need to physically produce hull models where the Froude Number, Prismatic Coefficient and Longitudinal position of the center of buoyancy are known.
 
-Moving forward, it could be argued a larger dataset would allow for a more accurate model and perhaps allow the incorporation of some or all the remaining variables into the prediction model. Additionally, there are other models types that were not produced here and these may produce more accurate results.
+Moving forward, it could investigation of a larger dataset could allow for the development of a more accurate model and perhaps allow the incorporation of some or all the remaining variables into the prediction model. Additionally, there are other models types that were not produced here and these may produce more accurate results.
 
 ***
 
