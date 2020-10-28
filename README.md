@@ -14,3 +14,4 @@ Final model used to predict values on testing set and performance assessed using
 
 File FullScript.R is the script used to download and process the data, create the model and assess the performance.
 File hydrodyn_resistance_report.Rmd is R markdown for project report.
+File hydrodyn_resistance_report.pdf is final knitted project report.
